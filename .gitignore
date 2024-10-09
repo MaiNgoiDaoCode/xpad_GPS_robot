@@ -1,0 +1,12 @@
+# Ignore all .log files
+*.log
+
+# Ignore the node_modules directory
+node_modules/
+dist/
+build/
+__pycache__/
+
+
+# Ignore all files in the temp directory
+temp/
