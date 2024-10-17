@@ -75,7 +75,7 @@ x=0
 y=0
 list_com=[]
 engine_ttp = create_engine('mysql+mysqlconnector://ttpdept:plcgpsd@localhost:3308/ttp', echo=False)
-mydb=mysql.connector.connect(host="localhost", user='ttpdept', passwd='plcgpsd', database="ttp")
+mydb=mysql.connector.connect(host="localhost",port='3308', user='ttpdept', passwd='plcgpsd', database="ttp")
 myCursor=mydb.cursor()
 tb_list=pd.read_sql('select * from location_detail where project="TPD2" and tuabin="'+str(fromtubin)+'";',engine_ttp)
 x0=0
@@ -285,6 +285,8 @@ class MyWindow(QtWidgets.QMainWindow):
             buffer=buffer.decode('utf-8')
             if ':01' in buffer:
                 QMessageBox.about(self, 'Alert','Robot have been connected!')
+                print(buffer)
+                print('robot phan hoi chuoi check')
                 setting=1
                 ser=ser_r
                 self.ui.bt_reconnect_plc.setEnabled(False)
@@ -360,8 +362,9 @@ class MyWindow(QtWidgets.QMainWindow):
         crc=lc^0xFFFF
         crc=crc+1
         cmd=(':0103'+hex_a+'0001'+hex(crc)[-2:]).upper()+'\r\n'
-        # print(cmd.encode('ascii'))
-        # print('finish encode')
+        
+        print(cmd.encode('ascii'))
+        print('finish encode')
         return cmd.encode('ascii')
 
     def main_write_D(self,addr,value):
@@ -416,10 +419,11 @@ class MyWindow(QtWidgets.QMainWindow):
         global ser
         global setting
         if kn_plc!=1:
-            # print('read D410, HEIGHT')
+            print('read D410, HEIGHT')
             data=self.main_read_D(410)
+            print('data write',data)
             ser.write(data)
-            # print('finish write line')
+            print('finish write line')
             ascii='0000000'
             d410=0
             i=0
@@ -428,10 +432,10 @@ class MyWindow(QtWidgets.QMainWindow):
                     if ser.in_waiting > 0:
                         buffer = ser.readline()
                         # buffer=buffer[:7]
-                        # print('buffer=', buffer)
+                        print('buffer=', buffer)
                         ascii = buffer.decode('utf-8')
                         value=ascii[-8:-4]
-                        # print('value= ', value)
+                        print('value= ', value)
                         d410=int(str(value),16)
                         print('D410= ',d410)
                         break
@@ -517,6 +521,25 @@ class MyWindow(QtWidgets.QMainWindow):
                     # print('value= ', value)
                     d466=int(str(value),16)
                     print('D466= ',d466)
+                    break
+            self.ui.lineEdit_d_angle.setText(str(d466))
+            print("read D510")
+            time.sleep(0.02)
+            data=self.main_read_D(510)
+            print('write data to PLC',data)
+            ser.write(data)
+            ascii='0000000'
+            d510=0
+            while True:
+                if ser.in_waiting > 0:
+                    buffer = ser.readline()
+                    # buffer=buffer[:7]
+                    print('buffer=', buffer)
+                    ascii = buffer.decode('utf-8')
+                    value=ascii[-8:-4]
+                    # print('value= ', value)
+                    d510=int(str(value),16)
+                    print('D510= ',d510)
                     break
             self.ui.lineEdit_d_angle.setText(str(d466))
             # time.sleep(0.02)
@@ -813,6 +836,7 @@ class MyWindow(QtWidgets.QMainWindow):
             self.ui.tabWidget.setCurrentIndex(0)
 
     def menu_gps_window(self):
+        return
         self.u_gui=GPS_GUI(104)
         self.u_gui.show()
         
